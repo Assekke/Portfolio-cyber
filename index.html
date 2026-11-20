@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Портфолио киберспортсмена</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <header class="site-header"><span class="brand-mark" aria-hidden="true">/</span> ПОРТФОЛИО ИГРОКА <span class="local-note">Хранится на вашем устройстве</span></header>
+  <main>
+    <section id="editor" aria-labelledby="editor-title">
+      <p class="eyebrow">ВАША ИГРА. ВАШ ОПЫТ.</p>
+      <h1 id="editor-title">Расскажите о себе</h1>
+      <p class="intro">Соберите дисциплину, результаты и контакты в одном портфолио.</p>
+      <form id="player-form" novalidate>
+        <div class="form-grid">
+          <label>Никнейм <span class="hint">(обязательно)</span><input id="nickname" name="nickname" autocomplete="nickname" required aria-describedby="nickname-error"><span id="nickname-error" class="error" hidden>Введите никнейм.</span></label>
+          <label>Игровая дисциплина<input id="discipline" name="discipline" placeholder="Например, Dota 2"></label>
+          <label class="full-width">Роль<input id="role" name="role" placeholder="Например, Кэрри"></label>
+          <label>Статистика<textarea id="statistics" name="statistics" rows="4" placeholder="Ваши игровые показатели"></textarea></label>
+          <label>Достижения<textarea id="achievements" name="achievements" rows="4" placeholder="Турниры, места и награды" aria-describedby="date-hint"></textarea></label>
+          <label class="full-width">Контакты<textarea id="contacts" name="contacts" rows="3" placeholder="Почта, никнейм или ссылка для связи"></textarea></label>
+        </div>
+        <p id="date-hint" class="hint">Остальные поля — по желанию. Даты указывайте в формате ДД.ММ.ГГГГ.</p>
+        <div class="actions"><button type="submit">Сохранить <span aria-hidden="true">↗</span></button><span class="hint">Данные сохраняются только в этом браузере.</span></div>
+      </form>
+    </section>
+
+    <section id="portfolio" aria-labelledby="portfolio-title" hidden>
+      <div class="portfolio-top"><p class="eyebrow">ПОРТФОЛИО КИБЕРСПОРТСМЕНА</p><button id="edit-button" class="secondary" type="button">Редактировать</button></div>
+      <h1 id="portfolio-title" tabindex="-1"></h1>
+      <dl class="portfolio-grid">
+        <div><dt>Игровая дисциплина</dt><dd id="view-discipline"></dd></div>
+        <div><dt>Роль</dt><dd id="view-role"></dd></div>
+        <div><dt>Статистика</dt><dd id="view-statistics"></dd></div>
+        <div><dt>Достижения</dt><dd id="view-achievements"></dd></div>
+        <div class="full-width"><dt>Контакты</dt><dd id="view-contacts"></dd></div>
+      </dl>
+    </section>
+    <p id="status" role="status" aria-live="polite" aria-atomic="true"></p>
+    <noscript><p class="error">Включите JavaScript в браузере, чтобы сохранить и посмотреть портфолио.</p></noscript>
+  </main>
+  <footer>Ваша следующая глава начинается здесь.</footer>
+</body>
+</html>
