@@ -30,6 +30,15 @@
   const addTeam = document.getElementById("add-team");
   const teamsFeedback = document.getElementById("teams-feedback");
   const deleteTeamDialog = document.getElementById("delete-team-dialog");
+  const achievementDialog = document.getElementById("achievement-dialog");
+  const achievementForm = document.getElementById("achievement-form");
+  const achievementName = document.getElementById("achievement-name");
+  const achievementPlace = document.getElementById("achievement-place");
+  const achievementDate = document.getElementById("achievement-date");
+  const achievementError = document.getElementById("achievement-error");
+  const addAchievement = document.getElementById("add-achievement");
+  const achievementsFeedback = document.getElementById("achievements-feedback");
+  const deleteAchievementDialog = document.getElementById("delete-achievement-dialog");
   const avatarFile = document.getElementById("avatar-file");
   const avatarError = document.getElementById("avatar-error");
   const avatarProgress = document.getElementById("avatar-progress");
@@ -48,6 +57,10 @@
   let editingTeamId = null;
   let deletingTeamId = null;
   let teamFormBaseline = "";
+  let draftAchievementCards = [];
+  let editingAchievementId = null;
+  let deletingAchievementId = null;
+  let achievementFormBaseline = "";
 
   function message(text, isError = false) {
     status.textContent = text;
@@ -56,7 +69,8 @@
 
   function readForm() {
     return { ...Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value])), avatar: draftAvatar,
-      accentColor: accentColor.value, theme: theme.value, teams: draftTeams.map((team) => ({ ...team })) };
+      accentColor: accentColor.value, theme: theme.value, teams: draftTeams.map((team) => ({ ...team })),
+      achievementCards: draftAchievementCards.map((card) => ({ ...card })) };
   }
 
   function dateValue(value) {
@@ -188,6 +202,121 @@
     addTeam.focus();
   });
 
+  function validAchievementCards(cards) {
+    if (!Array.isArray(cards)) return false;
+    const ids = new Set();
+    return cards.every((card) => {
+      if (!card || typeof card.id !== "string" || !card.id || ids.has(card.id) ||
+        typeof card.title !== "string" || !card.title.trim() || typeof card.place !== "string" ||
+        !card.place.trim() || dateValue(card.date) === null) return false;
+      ids.add(card.id);
+      return true;
+    });
+  }
+
+  function achievementFormValues() {
+    return { title: achievementName.value, place: achievementPlace.value, date: achievementDate.value };
+  }
+
+  function openAchievement(card = null) {
+    editingAchievementId = card?.id ?? null;
+    achievementForm.reset();
+    achievementName.value = card?.title ?? "";
+    achievementPlace.value = card?.place ?? "";
+    achievementDate.value = card?.date ?? "";
+    achievementError.textContent = "";
+    for (const input of [achievementName, achievementPlace, achievementDate]) input.removeAttribute("aria-invalid");
+    document.getElementById("achievement-dialog-title").textContent = card ? "Редактировать достижение" : "Добавить достижение";
+    document.getElementById("apply-achievement").textContent = card ? "Применить изменения" : "Добавить в список";
+    achievementFormBaseline = JSON.stringify(achievementFormValues());
+    achievementDialog.showModal();
+    achievementName.focus();
+  }
+
+  function renderAchievementCards(cards, editable = false) {
+    const list = document.getElementById(editable ? "achievements-list" : "view-achievements-list");
+    document.getElementById(editable ? "achievements-empty" : "view-achievements-empty").hidden = cards.length > 0;
+    list.replaceChildren();
+    for (const card of cards) {
+      const item = document.createElement("li");
+      item.className = "record-card";
+      const title = document.createElement("h3");
+      title.textContent = card.title;
+      const place = document.createElement("p");
+      place.textContent = `Место: ${card.place}`;
+      const date = document.createElement("p");
+      date.className = "hint";
+      date.textContent = card.date;
+      item.append(title, place, date);
+      if (editable) {
+        const actions = document.createElement("div");
+        actions.className = "record-actions";
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "secondary";
+        edit.textContent = "Редактировать";
+        edit.setAttribute("aria-label", `Редактировать достижение ${card.title}`);
+        edit.dataset.editAchievement = card.id;
+        edit.addEventListener("click", () => openAchievement(card));
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "secondary";
+        remove.textContent = "Удалить";
+        remove.setAttribute("aria-label", `Удалить достижение ${card.title}`);
+        remove.addEventListener("click", () => {
+          deletingAchievementId = card.id;
+          document.getElementById("delete-achievement-description").textContent = `Карточка «${card.title}» будет удалена из списка. Для сохранения изменения нажмите «Сохранить» в редакторе портфолио.`;
+          deleteAchievementDialog.showModal();
+          document.getElementById("cancel-delete-achievement").focus();
+        });
+        actions.append(edit, remove);
+        item.append(actions);
+      }
+      list.append(item);
+    }
+  }
+
+  addAchievement.addEventListener("click", () => openAchievement());
+  document.getElementById("cancel-achievement").addEventListener("click", () => achievementDialog.close());
+  achievementForm.addEventListener("input", (event) => {
+    event.target.removeAttribute("aria-invalid");
+    achievementError.textContent = "";
+  });
+  achievementForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    achievementError.textContent = "";
+    for (const input of [achievementName, achievementPlace, achievementDate]) input.removeAttribute("aria-invalid");
+    const entry = { id: editingAchievementId ?? crypto.randomUUID(), ...achievementFormValues(), date: achievementDate.value.trim() };
+    const fail = (input, text) => {
+      input.setAttribute("aria-invalid", "true");
+      achievementError.textContent = text;
+      input.focus();
+    };
+    if (!entry.title.trim()) return fail(achievementName, "Введите название турнира.");
+    if (!entry.place.trim()) return fail(achievementPlace, "Введите занятое место.");
+    if (!entry.date) return fail(achievementDate, "Введите дату достижения.");
+    if (dateValue(entry.date) === null) return fail(achievementDate, "Введите существующую дату в формате ДД.ММ.ГГГГ.");
+    const editing = editingAchievementId !== null;
+    draftAchievementCards = editing ? draftAchievementCards.map((card) => card.id === editingAchievementId ? entry : card) : [...draftAchievementCards, entry];
+    achievementDialog.close();
+    renderAchievementCards(draftAchievementCards, true);
+    achievementsFeedback.textContent = `${editing ? "Карточка изменена." : "Достижение добавлено."} Нажмите «Сохранить» для сохранения портфолио.`;
+    Array.from(document.querySelectorAll("[data-edit-achievement]")).find((button) => button.dataset.editAchievement === entry.id)?.focus();
+  });
+  document.getElementById("cancel-delete-achievement").addEventListener("click", () => {
+    deletingAchievementId = null;
+    deleteAchievementDialog.close();
+  });
+  deleteAchievementDialog.addEventListener("cancel", () => { deletingAchievementId = null; });
+  document.getElementById("confirm-delete-achievement").addEventListener("click", () => {
+    draftAchievementCards = draftAchievementCards.filter((card) => card.id !== deletingAchievementId);
+    deletingAchievementId = null;
+    deleteAchievementDialog.close();
+    renderAchievementCards(draftAchievementCards, true);
+    achievementsFeedback.textContent = "Карточка удалена из списка. Нажмите «Сохранить» для сохранения портфолио.";
+    addAchievement.focus();
+  });
+
   function luminance(color) {
     const channels = color.match(/[a-f\d]{2}/gi).map((channel) => {
       const value = parseInt(channel, 16) / 255;
@@ -228,7 +357,8 @@
   function makePlayer(values) {
     return { id: crypto.randomUUID(), ...Object.fromEntries(fields.map((field) => [field, values[field] ?? ""])),
       avatar: values.avatar ?? "", accentColor: values.accentColor ?? defaultAccent, theme: values.theme ?? "dark",
-      teams: (values.teams ?? []).map((team) => ({ ...team })) };
+      teams: (values.teams ?? []).map((team) => ({ ...team })),
+      achievementCards: (values.achievementCards ?? []).map((card) => ({ ...card })) };
   }
 
   function validAvatar(value) {
@@ -241,7 +371,8 @@
       (player.avatar === undefined || validAvatar(player.avatar)) &&
       (player.accentColor === undefined || (typeof player.accentColor === "string" && /^#[a-f\d]{6}$/i.test(player.accentColor))) &&
       (player.theme === undefined || player.theme === "dark" || player.theme === "light") &&
-      (player.teams === undefined || validTeams(player.teams));
+      (player.teams === undefined || validTeams(player.teams)) &&
+      (player.achievementCards === undefined || validAchievementCards(player.achievementCards));
   }
 
   function displayAvatar(imageId, placeholderId, value) {
@@ -323,6 +454,7 @@
   }
 
   function showPortfolio(player, focus = false) {
+    renderAchievementCards(player.achievementCards ?? []);
     renderTeams(player.teams ?? []);
     displayAvatar("view-avatar", "view-avatar-placeholder", player.avatar ?? "");
     document.getElementById("portfolio-title").textContent = player.nickname;
@@ -362,6 +494,9 @@
     avatarError.textContent = "";
     avatarProgress.textContent = "";
     const player = state.portfolios.find((item) => item.id === state.activeId);
+    draftAchievementCards = (player?.achievementCards ?? []).map((card) => ({ ...card }));
+    achievementsFeedback.textContent = "";
+    renderAchievementCards(draftAchievementCards, true);
     draftTeams = (player?.teams ?? []).map((team) => ({ ...team }));
     teamsFeedback.textContent = "";
     renderTeams(draftTeams, true);
@@ -540,7 +675,8 @@
   });
 
   window.addEventListener("beforeunload", (event) => {
-    if (isDirty() || avatarLoading || (teamDialog.open && JSON.stringify(teamFormValues()) !== teamFormBaseline)) {
+    if (isDirty() || avatarLoading || (teamDialog.open && JSON.stringify(teamFormValues()) !== teamFormBaseline) ||
+      (achievementDialog.open && JSON.stringify(achievementFormValues()) !== achievementFormBaseline)) {
       event.preventDefault();
       event.returnValue = "";
     }

@@ -46,7 +46,7 @@
           <label>Игровая дисциплина<input id="discipline" name="discipline" placeholder="Например, Dota 2"></label>
           <label class="full-width">Роль<input id="role" name="role" placeholder="Например, Кэрри"></label>
           <label>Статистика<textarea id="statistics" name="statistics" rows="4" placeholder="Ваши игровые показатели"></textarea></label>
-          <label>Достижения<textarea id="achievements" name="achievements" rows="4" placeholder="Турниры, места и награды" aria-describedby="date-hint"></textarea></label>
+          <label>Достижения — свободный текст<textarea id="achievements" name="achievements" rows="4" placeholder="Турниры, места и награды" aria-describedby="date-hint"></textarea></label>
           <label class="full-width">Контакты<textarea id="contacts" name="contacts" rows="3" placeholder="Почта, никнейм или ссылка для связи"></textarea></label>
         </div>
         <p id="date-hint" class="hint">Остальные поля — по желанию. Даты указывайте в формате ДД.ММ.ГГГГ.</p>
@@ -56,6 +56,13 @@
           <p id="teams-empty" class="hint">Команды пока не добавлены.</p>
           <ul id="teams-list" class="record-list"></ul>
           <p id="teams-feedback" class="hint" role="status"></p>
+        </section>
+        <section class="achievements-section" aria-labelledby="achievement-cards-title">
+          <div class="section-top"><h2 id="achievement-cards-title">Карточки достижений</h2><button id="add-achievement" class="secondary" type="button">Добавить достижение</button></div>
+          <p class="hint">Добавьте турнир, место и дату, затем нажмите «Сохранить» для сохранения портфолио. Свободный текст достижений остаётся отдельным полем.</p>
+          <p id="achievements-empty" class="hint">Карточки достижений пока не добавлены.</p>
+          <ul id="achievements-list" class="record-list"></ul>
+          <p id="achievements-feedback" class="hint" role="status"></p>
         </section>
         <div class="actions"><button type="submit">Сохранить <span aria-hidden="true">↗</span></button><span class="hint">Данные сохраняются только в этом браузере.</span></div>
       </form>
@@ -72,13 +79,18 @@
         <div><dt>Игровая дисциплина</dt><dd id="view-discipline"></dd></div>
         <div><dt>Роль</dt><dd id="view-role"></dd></div>
         <div><dt>Статистика</dt><dd id="view-statistics"></dd></div>
-        <div><dt>Достижения</dt><dd id="view-achievements"></dd></div>
+        <div><dt>Достижения — свободный текст</dt><dd id="view-achievements"></dd></div>
         <div class="full-width"><dt>Контакты</dt><dd id="view-contacts"></dd></div>
       </dl>
       <section class="teams-section" aria-labelledby="view-teams-title">
         <h2 id="view-teams-title">Команды</h2>
         <p id="view-teams-empty" class="hint">Команды пока не добавлены.</p>
         <ul id="view-teams-list" class="record-list"></ul>
+      </section>
+      <section class="achievements-section" aria-labelledby="view-achievement-cards-title">
+        <h2 id="view-achievement-cards-title">Карточки достижений</h2>
+        <p id="view-achievements-empty" class="hint">Карточки достижений пока не добавлены.</p>
+        <ul id="view-achievements-list" class="record-list"></ul>
       </section>
     </section>
     <p id="status" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -125,6 +137,28 @@
       <div class="dialog-actions">
         <button id="confirm-delete-team" type="button">Удалить</button>
         <button id="cancel-delete-team" class="secondary" type="button">Отмена</button>
+      </div>
+    </dialog>
+    <dialog id="achievement-dialog" aria-labelledby="achievement-dialog-title">
+      <h2 id="achievement-dialog-title">Добавить достижение</h2>
+      <form id="achievement-form" novalidate>
+        <label>Название турнира<input id="achievement-name" required aria-describedby="achievement-hint achievement-error"></label>
+        <label>Занятое место<input id="achievement-place" placeholder="Например, 1 или 3–4" required aria-describedby="achievement-hint achievement-error"></label>
+        <label>Дата<input id="achievement-date" placeholder="ДД.ММ.ГГГГ" maxlength="10" required aria-describedby="achievement-hint achievement-error"></label>
+        <p id="achievement-hint" class="hint">Все три поля обязательны. Дата — ДД.ММ.ГГГГ.</p>
+        <p id="achievement-error" class="error" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="apply-achievement" type="submit">Добавить в список</button>
+          <button id="cancel-achievement" class="secondary" type="button">Отмена</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="delete-achievement-dialog" aria-labelledby="delete-achievement-title" aria-describedby="delete-achievement-description">
+      <h2 id="delete-achievement-title">Удалить достижение?</h2>
+      <p id="delete-achievement-description"></p>
+      <div class="dialog-actions">
+        <button id="confirm-delete-achievement" type="button">Удалить</button>
+        <button id="cancel-delete-achievement" class="secondary" type="button">Отмена</button>
       </div>
     </dialog>
   </main>
