@@ -17,11 +17,20 @@
   const createError = document.getElementById("create-error");
   const newDiscipline = document.getElementById("new-discipline");
   const newNickname = document.getElementById("new-nickname");
+  const avatarFile = document.getElementById("avatar-file");
+  const avatarError = document.getElementById("avatar-error");
+  const avatarProgress = document.getElementById("avatar-progress");
+  const removeAvatar = document.getElementById("remove-avatar");
+  const maxAvatarSize = 2 * 1024 * 1024;
+  const avatarTypes = ["image/jpeg", "image/png", "image/webp"];
   const writeError = "Не удалось сохранить данные в браузере. Проверьте разрешения или свободное место. Введённые данные остаются в форме.";
   let state = { version: 2, activeId: null, portfolios: [] };
   let baseline = "";
   let pendingAction = null;
   let saveBeforeCreate = false;
+  let draftAvatar = "";
+  let avatarRequest = 0;
+  let avatarLoading = false;
 
   function message(text, isError = false) {
     status.textContent = text;
@@ -29,7 +38,7 @@
   }
 
   function readForm() {
-    return Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value]));
+    return { ...Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value])), avatar: draftAvatar };
   }
 
   function isDirty() {
@@ -37,11 +46,72 @@
   }
 
   function makePlayer(values) {
-    return { id: crypto.randomUUID(), ...Object.fromEntries(fields.map((field) => [field, values[field] ?? ""])) };
+    return { id: crypto.randomUUID(), ...Object.fromEntries(fields.map((field) => [field, values[field] ?? ""])), avatar: values.avatar ?? "" };
+  }
+
+  function validAvatar(value) {
+    return typeof value === "string" && (value === "" ||
+      (value.length <= Math.ceil(maxAvatarSize / 3) * 4 + 32 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value)));
   }
 
   function validPlayer(player) {
-    return player && fields.every((field) => typeof player[field] === "string") && player.nickname.trim();
+    return player && fields.every((field) => typeof player[field] === "string") && player.nickname.trim() &&
+      (player.avatar === undefined || validAvatar(player.avatar));
+  }
+
+  function displayAvatar(imageId, placeholderId, value) {
+    const image = document.getElementById(imageId);
+    const placeholder = document.getElementById(placeholderId);
+    image.hidden = !value;
+    placeholder.hidden = Boolean(value);
+    // A damaged stored image falls back to the same neutral placeholder.
+    image.onerror = () => {
+      image.hidden = true;
+      placeholder.hidden = false;
+    };
+    if (value) image.src = value;
+    else image.removeAttribute("src");
+  }
+
+  function refreshAvatar() {
+    displayAvatar("avatar-preview", "avatar-placeholder", draftAvatar);
+    removeAvatar.disabled = !draftAvatar && !avatarLoading;
+    document.getElementById("avatar-controls").setAttribute("aria-busy", String(avatarLoading));
+  }
+
+  function waitForAvatar() {
+    if (!avatarLoading) return false;
+    message("Дождитесь проверки аватара или отмените загрузку кнопкой «Удалить аватар».", true);
+    return true;
+  }
+
+  function readAvatar(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Не удалось прочитать файл. Выберите его ещё раз."));
+      reader.onabort = () => reject(new Error("Чтение файла прервано. Выберите его ещё раз."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function checkedAvatar(file) {
+    if (!avatarTypes.includes(file.type)) throw new Error("Выберите изображение JPEG, PNG или WebP.");
+    if (file.size > maxAvatarSize) throw new Error("Файл больше 2 МБ. Выберите изображение меньшего размера.");
+    const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    const matches = file.type === "image/jpeg" ? bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255 :
+      file.type === "image/png" ? [137, 80, 78, 71, 13, 10, 26, 10].every((byte, i) => bytes[i] === byte) :
+        String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" && String.fromCharCode(...bytes.slice(8, 12)) === "WEBP";
+    if (!matches) throw new Error("Файл повреждён или его содержимое не соответствует формату изображения.");
+    const value = await readAvatar(file);
+    const image = new Image();
+    image.src = value;
+    try {
+      await image.decode();
+    } catch {
+      throw new Error("Не удалось открыть изображение. Возможно, файл повреждён. Выберите другое.");
+    }
+    return value;
   }
 
   function validState(value) {
@@ -68,6 +138,7 @@
   }
 
   function showPortfolio(player, focus = false) {
+    displayAvatar("view-avatar", "view-avatar-placeholder", player.avatar ?? "");
     document.getElementById("portfolio-title").textContent = player.nickname;
     for (const field of fields.slice(1)) {
       const target = document.getElementById(`view-${field}`);
@@ -98,7 +169,15 @@
   }
 
   function loadActive(edit = false, focus = false) {
+    avatarRequest += 1;
+    avatarLoading = false;
+    avatarFile.value = "";
+    avatarFile.removeAttribute("aria-invalid");
+    avatarError.textContent = "";
+    avatarProgress.textContent = "";
     const player = state.portfolios.find((item) => item.id === state.activeId);
+    draftAvatar = player?.avatar ?? "";
+    refreshAvatar();
     for (const field of fields) document.getElementById(field).value = player ? player[field] : "";
     baseline = JSON.stringify(readForm());
     nickname.removeAttribute("aria-invalid");
@@ -152,6 +231,7 @@
   }
 
   function requestAction(action) {
+    if (waitForAvatar()) return;
     if (isDirty()) {
       pendingAction = action;
       unsavedDialog.showModal();
@@ -166,11 +246,54 @@
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    if (waitForAvatar()) return;
     message("");
     if (!validateNickname()) return;
     if (!persist(withDraft())) return;
     loadActive(false, true);
     message("Портфолио сохранено в этом браузере.");
+  });
+
+  avatarFile.addEventListener("change", async () => {
+    const file = avatarFile.files[0];
+    if (!file) return;
+    const request = ++avatarRequest;
+    avatarFile.value = "";
+    avatarError.textContent = "";
+    avatarFile.removeAttribute("aria-invalid");
+    avatarProgress.textContent = "Проверяем изображение…";
+    avatarLoading = true;
+    refreshAvatar();
+    try {
+      const value = await checkedAvatar(file);
+      if (request !== avatarRequest) return;
+      draftAvatar = value;
+      avatarProgress.textContent = "Аватар выбран. Нажмите «Сохранить».";
+      message("");
+    } catch (error) {
+      if (request !== avatarRequest) return;
+      avatarError.textContent = error.message || "Не удалось прочитать изображение. Выберите другое.";
+      avatarFile.setAttribute("aria-invalid", "true");
+      avatarProgress.textContent = "";
+    } finally {
+      if (request === avatarRequest) {
+        avatarLoading = false;
+        refreshAvatar();
+      }
+    }
+  });
+
+  removeAvatar.addEventListener("click", () => {
+    avatarRequest += 1;
+    avatarLoading = false;
+    draftAvatar = "";
+    avatarFile.value = "";
+    avatarFile.removeAttribute("aria-invalid");
+    avatarError.textContent = "";
+    avatarProgress.textContent = "Аватар удалён из формы. Нажмите «Сохранить».";
+    message("");
+    refreshAvatar();
+    avatarFile.focus();
   });
 
   select.addEventListener("change", () => {
@@ -225,7 +348,7 @@
   });
 
   window.addEventListener("beforeunload", (event) => {
-    if (isDirty()) {
+    if (isDirty() || avatarLoading) {
       event.preventDefault();
       event.returnValue = "";
     }
