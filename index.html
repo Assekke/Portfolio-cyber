@@ -50,6 +50,13 @@
           <label class="full-width">Контакты<textarea id="contacts" name="contacts" rows="3" placeholder="Почта, никнейм или ссылка для связи"></textarea></label>
         </div>
         <p id="date-hint" class="hint">Остальные поля — по желанию. Даты указывайте в формате ДД.ММ.ГГГГ.</p>
+        <section class="teams-section" aria-labelledby="teams-title">
+          <div class="section-top"><h2 id="teams-title">Команды</h2><button id="add-team" class="secondary" type="button">Добавить команду</button></div>
+          <p class="hint">Добавьте записи об участии в командах, затем нажмите «Сохранить» для сохранения портфолио.</p>
+          <p id="teams-empty" class="hint">Команды пока не добавлены.</p>
+          <ul id="teams-list" class="record-list"></ul>
+          <p id="teams-feedback" class="hint" role="status"></p>
+        </section>
         <div class="actions"><button type="submit">Сохранить <span aria-hidden="true">↗</span></button><span class="hint">Данные сохраняются только в этом браузере.</span></div>
       </form>
     </section>
@@ -68,6 +75,11 @@
         <div><dt>Достижения</dt><dd id="view-achievements"></dd></div>
         <div class="full-width"><dt>Контакты</dt><dd id="view-contacts"></dd></div>
       </dl>
+      <section class="teams-section" aria-labelledby="view-teams-title">
+        <h2 id="view-teams-title">Команды</h2>
+        <p id="view-teams-empty" class="hint">Команды пока не добавлены.</p>
+        <ul id="view-teams-list" class="record-list"></ul>
+      </section>
     </section>
     <p id="status" role="status" aria-live="polite" aria-atomic="true"></p>
     <noscript><p class="error">Включите JavaScript в браузере, чтобы сохранить и посмотреть портфолио.</p></noscript>
@@ -91,6 +103,29 @@
           <button id="cancel-create" class="secondary" type="button">Отмена</button>
         </div>
       </form>
+    </dialog>
+    <dialog id="team-dialog" aria-labelledby="team-dialog-title">
+      <h2 id="team-dialog-title">Добавить команду</h2>
+      <form id="team-form" novalidate>
+        <label>Название команды <span class="hint">(обязательно)</span><input id="team-name" required aria-describedby="team-error"></label>
+        <label>Роль <span class="hint">(по желанию)</span><input id="team-role" aria-describedby="team-error"></label>
+        <label>Дата начала <span class="hint">(обязательно)</span><input id="team-start" placeholder="ДД.ММ.ГГГГ" maxlength="10" required aria-describedby="team-date-hint team-error"></label>
+        <label>Дата окончания <span class="hint">(по желанию)</span><input id="team-end" placeholder="ДД.ММ.ГГГГ" maxlength="10" aria-describedby="team-date-hint team-error"></label>
+        <p id="team-date-hint" class="hint">Даты — ДД.ММ.ГГГГ. Без даты окончания — «По настоящее время».</p>
+        <p id="team-error" class="error" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="apply-team" type="submit">Добавить в список</button>
+          <button id="cancel-team" class="secondary" type="button">Отмена</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="delete-team-dialog" aria-labelledby="delete-team-title" aria-describedby="delete-team-description">
+      <h2 id="delete-team-title">Удалить команду?</h2>
+      <p id="delete-team-description"></p>
+      <div class="dialog-actions">
+        <button id="confirm-delete-team" type="button">Удалить</button>
+        <button id="cancel-delete-team" class="secondary" type="button">Отмена</button>
+      </div>
     </dialog>
   </main>
   <footer>Ваша следующая глава начинается здесь.</footer>

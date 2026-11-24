@@ -20,6 +20,16 @@
   const accentColor = document.getElementById("accent-color");
   const theme = document.getElementById("theme");
   const defaultAccent = "#c1f66b";
+  const teamDialog = document.getElementById("team-dialog");
+  const teamForm = document.getElementById("team-form");
+  const teamName = document.getElementById("team-name");
+  const teamRole = document.getElementById("team-role");
+  const teamStart = document.getElementById("team-start");
+  const teamEnd = document.getElementById("team-end");
+  const teamError = document.getElementById("team-error");
+  const addTeam = document.getElementById("add-team");
+  const teamsFeedback = document.getElementById("teams-feedback");
+  const deleteTeamDialog = document.getElementById("delete-team-dialog");
   const avatarFile = document.getElementById("avatar-file");
   const avatarError = document.getElementById("avatar-error");
   const avatarProgress = document.getElementById("avatar-progress");
@@ -34,6 +44,10 @@
   let draftAvatar = "";
   let avatarRequest = 0;
   let avatarLoading = false;
+  let draftTeams = [];
+  let editingTeamId = null;
+  let deletingTeamId = null;
+  let teamFormBaseline = "";
 
   function message(text, isError = false) {
     status.textContent = text;
@@ -42,8 +56,137 @@
 
   function readForm() {
     return { ...Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value])), avatar: draftAvatar,
-      accentColor: accentColor.value, theme: theme.value };
+      accentColor: accentColor.value, theme: theme.value, teams: draftTeams.map((team) => ({ ...team })) };
   }
+
+  function dateValue(value) {
+    if (typeof value !== "string") return null;
+    const parts = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
+    if (!parts) return null;
+    const [day, month, year] = parts.slice(1).map(Number);
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= days[month - 1] ? year * 10000 + month * 100 + day : null;
+  }
+
+  function validTeams(teams) {
+    if (!Array.isArray(teams)) return false;
+    const ids = new Set();
+    return teams.every((team) => {
+      if (!team || typeof team.id !== "string" || !team.id || ids.has(team.id) ||
+        typeof team.name !== "string" || !team.name.trim() || typeof team.role !== "string" ||
+        dateValue(team.startDate) === null || (team.endDate !== "" &&
+          (dateValue(team.endDate) === null || dateValue(team.endDate) < dateValue(team.startDate)))) return false;
+      ids.add(team.id);
+      return true;
+    });
+  }
+
+  function teamFormValues() {
+    return { name: teamName.value, role: teamRole.value, startDate: teamStart.value, endDate: teamEnd.value };
+  }
+
+  function openTeam(team = null) {
+    editingTeamId = team?.id ?? null;
+    teamForm.reset();
+    teamName.value = team?.name ?? "";
+    teamRole.value = team?.role ?? "";
+    teamStart.value = team?.startDate ?? "";
+    teamEnd.value = team?.endDate ?? "";
+    teamError.textContent = "";
+    for (const input of [teamName, teamRole, teamStart, teamEnd]) input.removeAttribute("aria-invalid");
+    document.getElementById("team-dialog-title").textContent = team ? "Редактировать команду" : "Добавить команду";
+    document.getElementById("apply-team").textContent = team ? "Применить изменения" : "Добавить в список";
+    teamFormBaseline = JSON.stringify(teamFormValues());
+    teamDialog.showModal();
+    teamName.focus();
+  }
+
+  function renderTeams(teams, editable = false) {
+    const list = document.getElementById(editable ? "teams-list" : "view-teams-list");
+    document.getElementById(editable ? "teams-empty" : "view-teams-empty").hidden = teams.length > 0;
+    list.replaceChildren();
+    for (const team of teams) {
+      const item = document.createElement("li");
+      item.className = "record-card";
+      const name = document.createElement("h3");
+      name.textContent = team.name;
+      const role = document.createElement("p");
+      role.textContent = `Роль: ${team.role.trim() ? team.role : "Не указана"}`;
+      const dates = document.createElement("p");
+      dates.className = "hint";
+      dates.textContent = `${team.startDate} — ${team.endDate || "По настоящее время"}`;
+      item.append(name, role, dates);
+      if (editable) {
+        const actions = document.createElement("div");
+        actions.className = "record-actions";
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.className = "secondary";
+        edit.textContent = "Редактировать";
+        edit.setAttribute("aria-label", `Редактировать команду ${team.name}`);
+        edit.dataset.editTeam = team.id;
+        edit.addEventListener("click", () => openTeam(team));
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "secondary";
+        remove.textContent = "Удалить";
+        remove.setAttribute("aria-label", `Удалить команду ${team.name}`);
+        remove.addEventListener("click", () => {
+          deletingTeamId = team.id;
+          document.getElementById("delete-team-description").textContent = `Запись «${team.name}» будет удалена из списка. Для сохранения изменения нажмите «Сохранить» в редакторе портфолио.`;
+          deleteTeamDialog.showModal();
+          document.getElementById("cancel-delete-team").focus();
+        });
+        actions.append(edit, remove);
+        item.append(actions);
+      }
+      list.append(item);
+    }
+  }
+
+  addTeam.addEventListener("click", () => openTeam());
+  document.getElementById("cancel-team").addEventListener("click", () => teamDialog.close());
+  teamForm.addEventListener("input", (event) => {
+    event.target.removeAttribute("aria-invalid");
+    teamError.textContent = "";
+  });
+  teamForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    teamError.textContent = "";
+    for (const input of [teamName, teamRole, teamStart, teamEnd]) input.removeAttribute("aria-invalid");
+    const entry = { id: editingTeamId ?? crypto.randomUUID(), ...teamFormValues(),
+      startDate: teamStart.value.trim(), endDate: teamEnd.value.trim() };
+    const fail = (input, text) => {
+      input.setAttribute("aria-invalid", "true");
+      teamError.textContent = text;
+      input.focus();
+    };
+    if (!entry.name.trim()) return fail(teamName, "Введите название команды.");
+    if (!entry.startDate) return fail(teamStart, "Введите дату начала участия.");
+    if (dateValue(entry.startDate) === null) return fail(teamStart, "Введите существующую дату начала в формате ДД.ММ.ГГГГ.");
+    if (entry.endDate && dateValue(entry.endDate) === null) return fail(teamEnd, "Введите существующую дату окончания в формате ДД.ММ.ГГГГ.");
+    if (entry.endDate && dateValue(entry.endDate) < dateValue(entry.startDate)) return fail(teamEnd, "Дата окончания не может быть раньше даты начала.");
+    const editing = editingTeamId !== null;
+    draftTeams = editing ? draftTeams.map((team) => team.id === editingTeamId ? entry : team) : [...draftTeams, entry];
+    teamDialog.close();
+    renderTeams(draftTeams, true);
+    teamsFeedback.textContent = `${editing ? "Запись изменена." : "Команда добавлена."} Нажмите «Сохранить» для сохранения портфолио.`;
+    Array.from(document.querySelectorAll("[data-edit-team]")).find((button) => button.dataset.editTeam === entry.id)?.focus();
+  });
+  document.getElementById("cancel-delete-team").addEventListener("click", () => {
+    deletingTeamId = null;
+    deleteTeamDialog.close();
+  });
+  deleteTeamDialog.addEventListener("cancel", () => { deletingTeamId = null; });
+  document.getElementById("confirm-delete-team").addEventListener("click", () => {
+    draftTeams = draftTeams.filter((team) => team.id !== deletingTeamId);
+    deletingTeamId = null;
+    deleteTeamDialog.close();
+    renderTeams(draftTeams, true);
+    teamsFeedback.textContent = "Команда удалена из списка. Нажмите «Сохранить» для сохранения портфолио.";
+    addTeam.focus();
+  });
 
   function luminance(color) {
     const channels = color.match(/[a-f\d]{2}/gi).map((channel) => {
@@ -84,7 +227,8 @@
 
   function makePlayer(values) {
     return { id: crypto.randomUUID(), ...Object.fromEntries(fields.map((field) => [field, values[field] ?? ""])),
-      avatar: values.avatar ?? "", accentColor: values.accentColor ?? defaultAccent, theme: values.theme ?? "dark" };
+      avatar: values.avatar ?? "", accentColor: values.accentColor ?? defaultAccent, theme: values.theme ?? "dark",
+      teams: (values.teams ?? []).map((team) => ({ ...team })) };
   }
 
   function validAvatar(value) {
@@ -96,7 +240,8 @@
     return player && fields.every((field) => typeof player[field] === "string") && player.nickname.trim() &&
       (player.avatar === undefined || validAvatar(player.avatar)) &&
       (player.accentColor === undefined || (typeof player.accentColor === "string" && /^#[a-f\d]{6}$/i.test(player.accentColor))) &&
-      (player.theme === undefined || player.theme === "dark" || player.theme === "light");
+      (player.theme === undefined || player.theme === "dark" || player.theme === "light") &&
+      (player.teams === undefined || validTeams(player.teams));
   }
 
   function displayAvatar(imageId, placeholderId, value) {
@@ -178,6 +323,7 @@
   }
 
   function showPortfolio(player, focus = false) {
+    renderTeams(player.teams ?? []);
     displayAvatar("view-avatar", "view-avatar-placeholder", player.avatar ?? "");
     document.getElementById("portfolio-title").textContent = player.nickname;
     for (const field of fields.slice(1)) {
@@ -216,6 +362,9 @@
     avatarError.textContent = "";
     avatarProgress.textContent = "";
     const player = state.portfolios.find((item) => item.id === state.activeId);
+    draftTeams = (player?.teams ?? []).map((team) => ({ ...team }));
+    teamsFeedback.textContent = "";
+    renderTeams(draftTeams, true);
     accentColor.value = player?.accentColor ?? defaultAccent;
     theme.value = player?.theme ?? "dark";
     applyAppearance();
@@ -391,7 +540,7 @@
   });
 
   window.addEventListener("beforeunload", (event) => {
-    if (isDirty() || avatarLoading) {
+    if (isDirty() || avatarLoading || (teamDialog.open && JSON.stringify(teamFormValues()) !== teamFormBaseline)) {
       event.preventDefault();
       event.returnValue = "";
     }

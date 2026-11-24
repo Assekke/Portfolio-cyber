@@ -84,6 +84,16 @@ input[type="file"]::file-selector-button { min-height: 44px; margin-right: 12px;
 button:disabled { opacity: .55; cursor: default; }
 .portfolio-avatar { margin-top: 24px; }
 #avatar-error:empty, #avatar-progress:empty { display: none; }
+.teams-section { margin-top: 32px; }
+.section-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.section-top h2 { margin: 0; }
+.record-list { display: grid; gap: 16px; padding: 0; list-style: none; }
+.record-card { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow-wrap: anywhere; }
+.record-card h3 { margin: 0 0 12px; font-size: 20px; white-space: pre-wrap; }
+.record-card p { margin: 8px 0; white-space: pre-wrap; }
+.record-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+#team-error:empty, #teams-feedback:empty { display: none; }
+#delete-team-description { overflow-wrap: anywhere; white-space: pre-wrap; }
 dialog { width: min(520px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; padding: 24px; border: 1px solid var(--control-border); border-radius: 16px; color: var(--text); background: var(--surface); }
 dialog::backdrop { background: rgb(0 0 0 / 70%); }
 dialog h2 { margin-top: 0; overflow-wrap: anywhere; }
@@ -102,6 +112,7 @@ dialog label + label { margin-top: 20px; }
   .appearance-grid { grid-template-columns: minmax(0, 1fr); gap: 20px; }
   .avatar-settings { width: 100%; }
   .portfolio-top { align-items: flex-start; flex-direction: column; }
+  .section-top, .record-actions { align-items: stretch; flex-direction: column; }
   .portfolio-grid > div { padding: 20px; }
   footer { padding-left: 20px; padding-right: 20px; }
 }
