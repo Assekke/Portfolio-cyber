@@ -20,6 +20,8 @@
   const accentColor = document.getElementById("accent-color");
   const theme = document.getElementById("theme");
   const defaultAccent = "#c1f66b";
+  const exportButton = document.getElementById("export-pdf");
+  const exportDialog = document.getElementById("export-dialog");
   const teamDialog = document.getElementById("team-dialog");
   const teamForm = document.getElementById("team-form");
   const teamName = document.getElementById("team-name");
@@ -61,6 +63,7 @@
   let editingAchievementId = null;
   let deletingAchievementId = null;
   let achievementFormBaseline = "";
+  let printing = false;
 
   function message(text, isError = false) {
     status.textContent = text;
@@ -325,6 +328,18 @@
     return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
   }
 
+  function readableAccent(color, backgrounds, target) {
+    const channels = color.match(/[a-f\d]{2}/gi).map((channel) => parseInt(channel, 16));
+    for (let step = 0; step <= 100; step += 1) {
+      const ink = "#" + channels.map((channel) => Math.round(channel + (target - channel) * step / 100).toString(16).padStart(2, "0")).join("");
+      const light = luminance(ink);
+      if (backgrounds.every((background) => (Math.max(light, background) + .05) / (Math.min(light, background) + .05) >= 4.5)) {
+        return ink;
+      }
+    }
+    return target === 0 ? "#000000" : "#ffffff";
+  }
+
   function applyAppearance() {
     const root = document.documentElement;
     root.dataset.theme = theme.value;
@@ -333,17 +348,8 @@
     root.style.setProperty("--on-accent", (accentLuminance + .05) / .05 >= 1.05 / (accentLuminance + .05) ? "#000000" : "#ffffff");
     const styles = getComputedStyle(root);
     const backgrounds = ["--page-bg", "--surface", "--input-bg", "--hover-bg"].map((name) => luminance(styles.getPropertyValue(name).trim()));
-    const channels = accentColor.value.match(/[a-f\d]{2}/gi).map((channel) => parseInt(channel, 16));
-    const target = theme.value === "light" ? 0 : 255;
     // Preserve the selected button color; adjust text and focus accents for contrast.
-    for (let step = 0; step <= 100; step += 1) {
-      const ink = "#" + channels.map((channel) => Math.round(channel + (target - channel) * step / 100).toString(16).padStart(2, "0")).join("");
-      const light = luminance(ink);
-      if (backgrounds.every((background) => (Math.max(light, background) + .05) / (Math.min(light, background) + .05) >= 4.5)) {
-        root.style.setProperty("--accent-ink", ink);
-        break;
-      }
-    }
+    root.style.setProperty("--accent-ink", readableAccent(accentColor.value, backgrounds, theme.value === "light" ? 0 : 255));
   }
 
   accentColor.addEventListener("input", applyAppearance);
@@ -453,7 +459,7 @@
     }
   }
 
-  function showPortfolio(player, focus = false) {
+  function renderPortfolio(player) {
     renderAchievementCards(player.achievementCards ?? []);
     renderTeams(player.teams ?? []);
     displayAvatar("view-avatar", "view-avatar-placeholder", player.avatar ?? "");
@@ -464,6 +470,10 @@
       target.textContent = empty ? "Не указано" : player[field];
       target.classList.toggle("empty", empty);
     }
+  }
+
+  function showPortfolio(player, focus = false) {
+    renderPortfolio(player);
     editor.hidden = true;
     portfolio.hidden = false;
     if (focus) document.getElementById("portfolio-title").focus();
@@ -494,6 +504,7 @@
     avatarError.textContent = "";
     avatarProgress.textContent = "";
     const player = state.portfolios.find((item) => item.id === state.activeId);
+    exportButton.disabled = !player;
     draftAchievementCards = (player?.achievementCards ?? []).map((card) => ({ ...card }));
     achievementsFeedback.textContent = "";
     renderAchievementCards(draftAchievementCards, true);
@@ -525,6 +536,56 @@
     nickname.focus();
     return false;
   }
+
+  function preparePrint() {
+    const player = state.portfolios.find((item) => item.id === state.activeId);
+    document.documentElement.dataset.printReady = String(Boolean(player));
+    if (!player) return;
+    renderPortfolio(player);
+    document.documentElement.style.setProperty("--print-accent-ink", readableAccent(player.accentColor ?? defaultAccent, [1], 0));
+  }
+
+  async function printSaved() {
+    if (printing || waitForAvatar()) return;
+    const activeId = state.activeId;
+    if (!activeId) return;
+    printing = true;
+    exportButton.disabled = true;
+    try {
+      preparePrint();
+      await document.fonts.ready;
+      const image = document.getElementById("view-avatar");
+      if (image.getAttribute("src")) await image.decode().catch(() => {});
+      if (state.activeId !== activeId || isDirty() || avatarLoading || document.querySelector("dialog[open]")) {
+        message("Данные изменились во время подготовки. Нажмите «Скачать PDF» ещё раз.", true);
+        return;
+      }
+      window.print();
+    } catch {
+      message("Не удалось открыть окно печати. Проверьте настройки браузера и повторите экспорт.", true);
+    } finally {
+      printing = false;
+      exportButton.disabled = !state.activeId;
+    }
+  }
+
+  exportButton.addEventListener("click", () => {
+    if (printing || waitForAvatar()) return;
+    if (isDirty()) {
+      exportDialog.showModal();
+      document.getElementById("cancel-export").focus();
+    } else void printSaved();
+  });
+  document.getElementById("cancel-export").addEventListener("click", () => exportDialog.close());
+  document.getElementById("save-and-print").addEventListener("click", () => {
+    exportDialog.close();
+    message("");
+    if (!validateNickname()) return;
+    if (!persist(withDraft())) return;
+    loadActive(false, true);
+    void printSaved();
+  });
+  window.addEventListener("beforeprint", preparePrint);
 
   function withDraft() {
     const next = { ...state, portfolios: state.portfolios.map((player) => ({ ...player })) };

@@ -85,6 +85,7 @@ button:disabled { opacity: .55; cursor: default; }
 .portfolio-avatar { margin-top: 24px; }
 #avatar-error:empty, #avatar-progress:empty { display: none; }
 .teams-section, .achievements-section { margin-top: 32px; }
+.export-controls { margin-top: 32px; }
 .section-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .section-top h2 { margin: 0; }
 .record-list { display: grid; gap: 16px; padding: 0; list-style: none; }
@@ -115,4 +116,42 @@ dialog label + label { margin-top: 20px; }
   .section-top, .record-actions { align-items: stretch; flex-direction: column; }
   .portfolio-grid > div { padding: 20px; }
   footer { padding-left: 20px; padding-right: 20px; }
+}
+@page { size: A4; margin: 15mm; }
+@media print {
+  :root, :root[data-theme] {
+    color-scheme: light;
+    --page-bg: #ffffff;
+    --surface: #ffffff;
+    --input-bg: #ffffff;
+    --hover-bg: #ffffff;
+    --text: #182126;
+    --muted: #4c5e68;
+    --line: #a8b4bc;
+    --accent-ink: var(--print-accent-ink, #182126) !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  body { background: #ffffff; font-size: 11pt; }
+  main { max-width: none; width: auto; margin: 0; padding: 0; }
+  .site-header, footer, #editor, .portfolio-controls, .export-controls, #status, dialog, noscript, #portfolio button { display: none !important; }
+  :root[data-print-ready="true"] #portfolio { display: block !important; }
+  :root:not([data-print-ready="true"]) #portfolio { display: none !important; }
+  :root:not([data-print-ready="true"]) #print-empty { display: block !important; }
+  .portfolio-top { display: block; }
+  .eyebrow { font-size: 9pt; }
+  h1 { font-size: 28pt; margin: 16px 0 20px; padding-bottom: 12px; border-bottom: 3px solid var(--accent-ink); letter-spacing: normal; }
+  h2 { font-size: 17pt; }
+  h2, h3, dt { break-after: avoid-page; }
+  .portfolio-avatar { width: 96px; height: 96px; break-inside: avoid; }
+  .portfolio-grid, .record-list { display: block; }
+  .portfolio-grid { margin-top: 20px; }
+  .portfolio-grid > div, .record-card { padding: 12px; margin: 0 0 12px; overflow: visible; }
+  .portfolio-grid > div { break-inside: auto; }
+  dt { margin-bottom: 8px; }
+  dd { font-size: 11pt; orphans: 3; widows: 3; }
+  dd.empty, .hint { font-size: 10pt; }
+  .record-card { break-inside: avoid-page; }
+  .record-card h3 { font-size: 13pt; }
+  .teams-section, .achievements-section { margin-top: 24px; }
 }
