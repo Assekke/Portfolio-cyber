@@ -19,6 +19,14 @@
       <h1 id="editor-title">Расскажите о себе</h1>
       <p class="intro">Соберите дисциплину, результаты и контакты в одном портфолио.</p>
       <form id="player-form" novalidate>
+        <fieldset class="appearance-controls">
+          <legend>Оформление</legend>
+          <div class="appearance-grid">
+            <label>Основной цвет<input id="accent-color" type="color" value="#c1f66b" aria-describedby="appearance-hint"></label>
+            <label>Тема<select id="theme" aria-describedby="appearance-hint"><option value="dark">Тёмная</option><option value="light">Светлая</option></select></label>
+          </div>
+          <p id="appearance-hint" class="hint">Оформление видно сразу. Для сохранения нажмите «Сохранить».</p>
+        </fieldset>
         <fieldset id="avatar-controls" class="avatar-controls">
           <legend>Аватар</legend>
           <div class="avatar-frame">

@@ -17,6 +17,9 @@
   const createError = document.getElementById("create-error");
   const newDiscipline = document.getElementById("new-discipline");
   const newNickname = document.getElementById("new-nickname");
+  const accentColor = document.getElementById("accent-color");
+  const theme = document.getElementById("theme");
+  const defaultAccent = "#c1f66b";
   const avatarFile = document.getElementById("avatar-file");
   const avatarError = document.getElementById("avatar-error");
   const avatarProgress = document.getElementById("avatar-progress");
@@ -38,15 +41,50 @@
   }
 
   function readForm() {
-    return { ...Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value])), avatar: draftAvatar };
+    return { ...Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value])), avatar: draftAvatar,
+      accentColor: accentColor.value, theme: theme.value };
   }
+
+  function luminance(color) {
+    const channels = color.match(/[a-f\d]{2}/gi).map((channel) => {
+      const value = parseInt(channel, 16) / 255;
+      return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+    });
+    return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+  }
+
+  function applyAppearance() {
+    const root = document.documentElement;
+    root.dataset.theme = theme.value;
+    root.style.setProperty("--accent", accentColor.value);
+    const accentLuminance = luminance(accentColor.value);
+    root.style.setProperty("--on-accent", (accentLuminance + .05) / .05 >= 1.05 / (accentLuminance + .05) ? "#000000" : "#ffffff");
+    const styles = getComputedStyle(root);
+    const backgrounds = ["--page-bg", "--surface", "--input-bg", "--hover-bg"].map((name) => luminance(styles.getPropertyValue(name).trim()));
+    const channels = accentColor.value.match(/[a-f\d]{2}/gi).map((channel) => parseInt(channel, 16));
+    const target = theme.value === "light" ? 0 : 255;
+    // Preserve the selected button color; adjust text and focus accents for contrast.
+    for (let step = 0; step <= 100; step += 1) {
+      const ink = "#" + channels.map((channel) => Math.round(channel + (target - channel) * step / 100).toString(16).padStart(2, "0")).join("");
+      const light = luminance(ink);
+      if (backgrounds.every((background) => (Math.max(light, background) + .05) / (Math.min(light, background) + .05) >= 4.5)) {
+        root.style.setProperty("--accent-ink", ink);
+        break;
+      }
+    }
+  }
+
+  accentColor.addEventListener("input", applyAppearance);
+  accentColor.addEventListener("change", applyAppearance);
+  theme.addEventListener("change", applyAppearance);
 
   function isDirty() {
     return !editor.hidden && JSON.stringify(readForm()) !== baseline;
   }
 
   function makePlayer(values) {
-    return { id: crypto.randomUUID(), ...Object.fromEntries(fields.map((field) => [field, values[field] ?? ""])), avatar: values.avatar ?? "" };
+    return { id: crypto.randomUUID(), ...Object.fromEntries(fields.map((field) => [field, values[field] ?? ""])),
+      avatar: values.avatar ?? "", accentColor: values.accentColor ?? defaultAccent, theme: values.theme ?? "dark" };
   }
 
   function validAvatar(value) {
@@ -56,7 +94,9 @@
 
   function validPlayer(player) {
     return player && fields.every((field) => typeof player[field] === "string") && player.nickname.trim() &&
-      (player.avatar === undefined || validAvatar(player.avatar));
+      (player.avatar === undefined || validAvatar(player.avatar)) &&
+      (player.accentColor === undefined || (typeof player.accentColor === "string" && /^#[a-f\d]{6}$/i.test(player.accentColor))) &&
+      (player.theme === undefined || player.theme === "dark" || player.theme === "light");
   }
 
   function displayAvatar(imageId, placeholderId, value) {
@@ -176,6 +216,9 @@
     avatarError.textContent = "";
     avatarProgress.textContent = "";
     const player = state.portfolios.find((item) => item.id === state.activeId);
+    accentColor.value = player?.accentColor ?? defaultAccent;
+    theme.value = player?.theme ?? "dark";
+    applyAppearance();
     draftAvatar = player?.avatar ?? "";
     refreshAvatar();
     for (const field of fields) document.getElementById(field).value = player ? player[field] : "";
