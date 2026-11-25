@@ -1,6 +1,6 @@
 :root {
   color-scheme: dark;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: Consolas, "Courier New", monospace;
   color: var(--text);
   background: var(--page-bg);
   line-height: 1.5;
@@ -16,6 +16,10 @@
   --line: #70838e;
   --control-border: #70838e;
   --error: #ffb4ab;
+  --panel-bg: rgb(255 145 40 / 12%);
+  --panel-border: rgb(225 150 80 / 55%);
+  --panel-text: #f7f3ed;
+  --panel-muted: #d3c5b5;
 }
 :root[data-theme="light"] {
   color-scheme: light;
@@ -28,8 +32,11 @@
   --line: #70818c;
   --control-border: #70818c;
   --error: #b42318;
+  --panel-text: var(--text);
+  --panel-muted: var(--muted);
 }
-* { box-sizing: border-box; }
+/* Consolas has fixed weights; a light stroke approximates 15% more visual weight. */
+* { box-sizing: border-box; -webkit-text-stroke: 0.005em currentColor; }
 [hidden] { display: none !important; }
 body { margin: 0; }
 .site-header { display: flex; align-items: center; gap: 12px; padding: 12px max(20px, calc((100% - 960px) / 2)); border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; letter-spacing: 1.3px; }
@@ -65,7 +72,7 @@ button span { margin-left: 28px; }
 .portfolio-identity .eyebrow { margin: 0 0 6px; }
 .portfolio-summary h1 { margin: 0; font-size: clamp(28px, 5vw, 38px); line-height: 1.15; letter-spacing: -1px; }
 .portfolio-grid { margin: 0; }
-.portfolio-grid > div { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.portfolio-grid > div { min-width: 0; padding: 16px; border: 1px solid var(--panel-border); border-radius: 12px; background: var(--panel-bg); color: var(--panel-text); }
 dt { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
 dd { margin: 0; font-size: 18px; white-space: pre-wrap; overflow-wrap: anywhere; }
 dd.empty { color: var(--muted); font-size: 16px; }
@@ -92,7 +99,8 @@ button:disabled { opacity: .55; cursor: default; }
 .section-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .section-top h2 { margin: 0; }
 .record-list { display: grid; gap: 12px; padding: 0; list-style: none; }
-.record-card { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow-wrap: anywhere; }
+.record-card { min-width: 0; padding: 16px; border: 1px solid var(--panel-border); border-radius: 12px; background: var(--panel-bg); color: var(--panel-text); overflow-wrap: anywhere; }
+.portfolio-grid dt, .portfolio-grid dd.empty, .record-card .hint { color: var(--panel-muted); }
 .record-card h3 { margin: 0 0 12px; font-size: 20px; white-space: pre-wrap; }
 .record-card p { margin: 8px 0; white-space: pre-wrap; }
 .record-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
@@ -133,6 +141,10 @@ dialog label + label { margin-top: 20px; }
     --text: #182126;
     --muted: #4c5e68;
     --line: #a8b4bc;
+    --panel-bg: #ffffff;
+    --panel-border: var(--line);
+    --panel-text: var(--text);
+    --panel-muted: var(--muted);
     --accent-ink: var(--print-accent-ink, #182126) !important;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
