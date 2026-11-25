@@ -55,7 +55,14 @@
         <div class="form-grid">
           <label>Никнейм <span class="hint">(обязательно)</span><input id="nickname" name="nickname" autocomplete="nickname" required aria-describedby="nickname-error"><span id="nickname-error" class="error" hidden>Введите никнейм.</span></label>
           <label>Игровая дисциплина<input id="discipline" name="discipline" placeholder="Например, Dota 2"></label>
-          <label class="full-width">Роль<input id="role" name="role" placeholder="Например, Кэрри"></label>
+          <label class="full-width">Роль<select id="role" name="role">
+            <option value="">Не указана</option>
+            <option value="Кэрри">Кэрри — позиция 1</option>
+            <option value="Мидер">Мидер — позиция 2</option>
+            <option value="Оффлейнер">Оффлейнер — позиция 3</option>
+            <option value="Саппорт">Саппорт — позиция 4</option>
+            <option value="Полная поддержка">Полная поддержка — позиция 5</option>
+          </select></label>
           <label>Статистика<textarea id="statistics" name="statistics" rows="4" placeholder="Ваши игровые показатели"></textarea></label>
           <label>Достижения — свободный текст<textarea id="achievements" name="achievements" rows="4" placeholder="Турниры, места и награды" aria-describedby="date-hint"></textarea></label>
           <label class="full-width">Контакты<textarea id="contacts" name="contacts" rows="3" placeholder="Почта, никнейм или ссылка для связи"></textarea></label>

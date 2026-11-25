@@ -4,6 +4,8 @@
   const storageKey = "esports-player-portfolios-v2";
   const legacyKey = "esports-player-portfolio-v1";
   const fields = ["nickname", "discipline", "role", "statistics", "achievements", "contacts"];
+  const dotaRoles = ["Кэрри", "Мидер", "Оффлейнер", "Саппорт", "Полная поддержка"];
+  const discipline = document.getElementById("discipline");
   const form = document.getElementById("player-form");
   const editor = document.getElementById("editor");
   const portfolio = document.getElementById("portfolio");
@@ -77,6 +79,38 @@
       accentColor: accentColor.value, theme: theme.value, teams: draftTeams.map((team) => ({ ...team })),
       achievementCards: draftAchievementCards.map((card) => ({ ...card })) };
   }
+
+  function updateRoleField(value = document.getElementById("role").value) {
+    const previous = document.getElementById("role");
+    const game = discipline.value.trim();
+    const useList = !game || /^(?:dota|дота)\s*2$/i.test(game);
+    const control = document.createElement(useList ? "select" : "input");
+    control.id = "role";
+    control.name = "role";
+    if (useList) {
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "Не указана";
+      control.append(empty);
+      dotaRoles.forEach((role, index) => {
+        const option = document.createElement("option");
+        option.value = role;
+        option.textContent = `${role} — позиция ${index + 1}`;
+        control.append(option);
+      });
+      if (value && !dotaRoles.includes(value)) {
+        const saved = document.createElement("option");
+        saved.value = value;
+        saved.textContent = `Сохранённая роль: ${value}`;
+        saved.disabled = true;
+        control.append(saved);
+      }
+    } else control.placeholder = "Ваша игровая роль";
+    control.value = value;
+    previous.replaceWith(control);
+  }
+
+  discipline.addEventListener("input", () => updateRoleField());
 
   function dateValue(value) {
     if (typeof value !== "string") return null;
@@ -523,6 +557,8 @@
     applyAppearance();
     draftAvatar = player?.avatar ?? "";
     refreshAvatar();
+    discipline.value = player?.discipline ?? "";
+    updateRoleField(player?.role ?? "");
     for (const field of fields) document.getElementById(field).value = player ? player[field] : "";
     baseline = JSON.stringify(readForm());
     nickname.removeAttribute("aria-invalid");
