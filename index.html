@@ -10,6 +10,17 @@
 <body>
   <header class="site-header"><span class="brand-mark" aria-hidden="true">/</span> ПОРТФОЛИО ИГРОКА <span class="local-note">Хранится на вашем устройстве</span></header>
   <main>
+    <section id="portfolio-summary" class="portfolio-summary" aria-labelledby="portfolio-title" hidden>
+      <div class="avatar-frame portfolio-avatar">
+        <img id="view-avatar" alt="Аватар игрока" hidden>
+        <span id="view-avatar-placeholder" class="avatar-placeholder">Нет аватара</span>
+      </div>
+      <div class="portfolio-identity">
+        <p class="eyebrow">ПОРТФОЛИО КИБЕРСПОРТСМЕНА</p>
+        <h1 id="portfolio-title" tabindex="-1"></h1>
+      </div>
+      <button id="edit-button" class="secondary" type="button">Редактировать</button>
+    </section>
     <section class="portfolio-controls" aria-label="Выбор портфолио">
       <label for="portfolio-select">Игровое портфолио<select id="portfolio-select"><option value="">Пока нет сохранённых портфолио</option></select></label>
       <button id="new-button" class="secondary" type="button">Создать портфолио</button>
@@ -69,12 +80,6 @@
     </section>
 
     <section id="portfolio" aria-labelledby="portfolio-title" hidden>
-      <div class="portfolio-top"><p class="eyebrow">ПОРТФОЛИО КИБЕРСПОРТСМЕНА</p><button id="edit-button" class="secondary" type="button">Редактировать</button></div>
-      <div class="avatar-frame portfolio-avatar">
-        <img id="view-avatar" alt="Аватар игрока" hidden>
-        <span id="view-avatar-placeholder" class="avatar-placeholder">Нет аватара</span>
-      </div>
-      <h1 id="portfolio-title" tabindex="-1"></h1>
       <dl class="portfolio-grid">
         <div><dt>Игровая дисциплина</dt><dd id="view-discipline"></dd></div>
         <div><dt>Роль</dt><dd id="view-role"></dd></div>

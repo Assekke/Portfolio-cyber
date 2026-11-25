@@ -7,6 +7,8 @@
   const form = document.getElementById("player-form");
   const editor = document.getElementById("editor");
   const portfolio = document.getElementById("portfolio");
+  const portfolioSummary = document.getElementById("portfolio-summary");
+  const editButton = document.getElementById("edit-button");
   const nickname = document.getElementById("nickname");
   const nicknameError = document.getElementById("nickname-error");
   const status = document.getElementById("status");
@@ -474,6 +476,8 @@
 
   function showPortfolio(player, focus = false) {
     renderPortfolio(player);
+    portfolioSummary.hidden = false;
+    editButton.hidden = false;
     editor.hidden = true;
     portfolio.hidden = false;
     if (focus) document.getElementById("portfolio-title").focus();
@@ -504,6 +508,9 @@
     avatarError.textContent = "";
     avatarProgress.textContent = "";
     const player = state.portfolios.find((item) => item.id === state.activeId);
+    portfolioSummary.hidden = !player;
+    editButton.hidden = edit || !player;
+    if (player && edit) renderPortfolio(player);
     exportButton.disabled = !player;
     draftAchievementCards = (player?.achievementCards ?? []).map((card) => ({ ...card }));
     achievementsFeedback.textContent = "";
@@ -728,7 +735,8 @@
   });
 
   document.getElementById("cancel-create").addEventListener("click", () => createDialog.close());
-  document.getElementById("edit-button").addEventListener("click", () => {
+  editButton.addEventListener("click", () => {
+    editButton.hidden = true;
     portfolio.hidden = true;
     editor.hidden = false;
     message("");
