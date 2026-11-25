@@ -79,6 +79,8 @@ dd.empty { color: var(--muted); font-size: 16px; }
 footer { max-width: 960px; margin: 0 auto; padding: 8px 24px 20px; color: var(--muted); font-size: 12px; }
 .portfolio-controls { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 16px; }
 .portfolio-controls label { flex: 1; }
+#portfolio-select { background: rgb(255 70 70 / 12%); border-color: rgb(225 90 90 / 55%); color: var(--panel-text); }
+#portfolio-select option { background: var(--input-bg); color: var(--text); }
 .appearance-controls { min-width: 0; margin: 0 0 20px; padding: 0 0 16px; border: 0; border-bottom: 1px solid var(--line); }
 .appearance-controls legend { padding: 0 0 16px; font-size: 14px; font-weight: 600; }
 .appearance-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
