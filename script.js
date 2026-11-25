@@ -52,7 +52,9 @@
   const maxAvatarSize = 2 * 1024 * 1024;
   const avatarTypes = ["image/jpeg", "image/png", "image/webp"];
   const writeError = "Не удалось сохранить данные в браузере. Проверьте разрешения или свободное место. Введённые данные остаются в форме.";
+  const readError = "Не удалось прочитать сохранённые портфолио. Запись заблокирована, чтобы не затереть прежние данные. Скопируйте введённый текст перед перезагрузкой, восстановите доступ к хранилищу или исправьте повреждённую запись и обновите страницу.";
   let state = { version: 2, activeId: null, portfolios: [] };
+  let storageReadFailed = false;
   let baseline = "";
   let pendingAction = null;
   let saveBeforeCreate = false;
@@ -484,6 +486,11 @@
 
   // Change the working state only after the entire storage write succeeds.
   function persist(next, errorTarget = null) {
+    if (storageReadFailed) {
+      if (errorTarget) errorTarget.textContent = readError;
+      else message(readError, true);
+      return false;
+    }
     try {
       localStorage.setItem(storageKey, JSON.stringify(next));
       state = next;
@@ -807,7 +814,8 @@
       }
     }
   } catch {
-    message("Не удалось прочитать сохранённые портфолио. Проверьте доступ к хранилищу браузера. Сохранённые записи не удалены; можно заполнить форму заново.", true);
+    storageReadFailed = true;
+    message(readError, true);
   }
   loadActive();
 })();
