@@ -55,6 +55,8 @@
   const readError = "Не удалось прочитать сохранённые портфолио. Запись заблокирована, чтобы не затереть прежние данные. Скопируйте введённый текст перед перезагрузкой, восстановите доступ к хранилищу или исправьте повреждённую запись и обновите страницу.";
   let state = { version: 2, activeId: null, portfolios: [] };
   let storageReadFailed = false;
+  let storedSnapshot = null;
+  let legacySnapshot = null;
   let baseline = "";
   let pendingAction = null;
   let saveBeforeCreate = false;
@@ -486,19 +488,31 @@
 
   // Change the working state only after the entire storage write succeeds.
   function persist(next, errorTarget = null) {
-    if (storageReadFailed) {
-      if (errorTarget) errorTarget.textContent = readError;
-      else message(readError, true);
+    const fail = (text) => {
+      if (errorTarget) errorTarget.textContent = text;
+      else message(text, true);
       return false;
+    };
+    if (storageReadFailed) {
+      return fail(readError);
     }
     try {
-      localStorage.setItem(storageKey, JSON.stringify(next));
+      const saved = localStorage.getItem(storageKey);
+      if (saved !== storedSnapshot || (saved === null && localStorage.getItem(legacyKey) !== legacySnapshot)) {
+        return fail("Портфолио изменены в другой вкладке. Данные не записаны, введённые значения остаются в форме. Скопируйте свой черновик, обновите страницу и внесите изменения в актуальные данные.");
+      }
+    } catch {
+      storageReadFailed = true;
+      return fail(readError);
+    }
+    try {
+      const serialized = JSON.stringify(next);
+      localStorage.setItem(storageKey, serialized);
+      storedSnapshot = serialized;
       state = next;
       return true;
     } catch {
-      if (errorTarget) errorTarget.textContent = writeError;
-      else message(writeError, true);
-      return false;
+      return fail(writeError);
     }
   }
 
@@ -796,12 +810,14 @@
 
   try {
     const saved = localStorage.getItem(storageKey);
+    storedSnapshot = saved;
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (!validState(parsed)) throw new Error("Invalid saved portfolios");
       state = parsed;
     } else {
       const legacy = localStorage.getItem(legacyKey);
+      legacySnapshot = legacy;
       if (legacy !== null) {
         const parsed = JSON.parse(legacy);
         if (!validPlayer(parsed)) throw new Error("Invalid legacy portfolio");
