@@ -548,7 +548,7 @@
     for (const player of state.portfolios) {
       const option = document.createElement("option");
       option.value = player.id;
-      option.textContent = `${player.discipline.trim() ? player.discipline : "Без игры"} — ${player.nickname}`;
+      option.textContent = player.nickname;
       select.append(option);
     }
     select.value = state.activeId ?? "";
