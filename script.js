@@ -59,7 +59,6 @@
   let legacySnapshot = null;
   let baseline = "";
   let pendingAction = null;
-  let saveBeforeCreate = false;
   let draftAvatar = "";
   let avatarRequest = 0;
   let avatarLoading = false;
@@ -666,7 +665,11 @@
   function continueAction(action, saveDraft) {
     if (saveDraft && !validateNickname()) return;
     if (action.type === "new") {
-      saveBeforeCreate = saveDraft;
+      if (saveDraft) {
+        if (!persist(withDraft())) return;
+        loadActive(true);
+        message("Портфолио сохранено в этом браузере.");
+      }
       createForm.reset();
       createError.textContent = "";
       newDiscipline.removeAttribute("aria-invalid");
@@ -781,7 +784,7 @@
         return;
       }
     }
-    const next = saveBeforeCreate ? withDraft() : { ...state, portfolios: [...state.portfolios] };
+    const next = { ...state, portfolios: [...state.portfolios] };
     const player = makePlayer({ nickname: newNickname.value, discipline: newDiscipline.value });
     next.portfolios.push(player);
     next.activeId = player.id;
