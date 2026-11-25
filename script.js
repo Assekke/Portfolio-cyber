@@ -804,7 +804,8 @@
   });
 
   window.addEventListener("beforeunload", (event) => {
-    if (isDirty() || avatarLoading || (teamDialog.open && JSON.stringify(teamFormValues()) !== teamFormBaseline) ||
+    if (isDirty() || avatarLoading || (createDialog.open && (newDiscipline.value !== "" || newNickname.value !== "")) ||
+      (teamDialog.open && JSON.stringify(teamFormValues()) !== teamFormBaseline) ||
       (achievementDialog.open && JSON.stringify(achievementFormValues()) !== achievementFormBaseline)) {
       event.preventDefault();
       event.returnValue = "";
