@@ -608,6 +608,7 @@
       if (player.id === state.activeId) button.setAttribute("aria-current", "true");
       button.addEventListener("click", () => {
         if (player.id !== state.activeId) requestAction({ type: "switch", id: player.id });
+        else if (!editor.hidden) requestAction({ type: "view" });
       });
       item.append(button);
       roleResults.append(item);
@@ -765,6 +766,12 @@
 
   function continueAction(action, saveDraft) {
     if (saveDraft && !validateForm()) return;
+    if (action.type === "view") {
+      if (saveDraft && !persist(withDraft())) return;
+      loadActive(false, true);
+      message("");
+      return;
+    }
     if (action.type === "new") {
       if (saveDraft) {
         if (!persist(withDraft())) return;
