@@ -66,6 +66,15 @@
             <option value="Саппорт">Саппорт — позиция 4</option>
             <option value="Полная поддержка">Полная поддержка — позиция 5</option>
           </select></label>
+          <fieldset id="additional-roles" class="additional-roles full-width">
+            <legend>Дополнительные роли</legend>
+            <p class="hint">Выберите позиции, на которых вы также можете играть.</p>
+            <label><input type="checkbox" value="Кэрри"> Кэрри — позиция 1</label>
+            <label><input type="checkbox" value="Мидер"> Мидер — позиция 2</label>
+            <label><input type="checkbox" value="Оффлейнер"> Оффлейнер — позиция 3</label>
+            <label><input type="checkbox" value="Саппорт"> Саппорт — позиция 4</label>
+            <label><input type="checkbox" value="Полная поддержка"> Полная поддержка — позиция 5</label>
+          </fieldset>
           <label>Статистика<textarea id="statistics" name="statistics" rows="4" placeholder="Ваши игровые показатели"></textarea></label>
           <label>Достижения — свободный текст<textarea id="achievements" name="achievements" rows="4" placeholder="Турниры, места и награды" aria-describedby="date-hint"></textarea></label>
           <label class="full-width">Контакты<textarea id="contacts" name="contacts" rows="3" placeholder="Почта, никнейм или ссылка для связи"></textarea></label>
@@ -93,6 +102,7 @@
       <dl class="portfolio-grid">
         <div><dt>Игровая дисциплина</dt><dd id="view-discipline"></dd></div>
         <div><dt>Роль</dt><dd id="view-role"></dd></div>
+        <div id="view-additional-roles-card"><dt>Дополнительные роли</dt><dd id="view-additional-roles"></dd></div>
         <div><dt>Статистика</dt><dd id="view-statistics"></dd></div>
         <div><dt>Достижения — свободный текст</dt><dd id="view-achievements"></dd></div>
         <div class="full-width"><dt>Контакты</dt><dd id="view-contacts"></dd></div>

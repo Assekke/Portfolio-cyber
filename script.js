@@ -6,6 +6,8 @@
   const fields = ["nickname", "discipline", "role", "statistics", "achievements", "contacts"];
   const dotaRoles = ["Кэрри", "Мидер", "Оффлейнер", "Саппорт", "Полная поддержка"];
   const discipline = document.getElementById("discipline");
+  const additionalRoles = document.getElementById("additional-roles");
+  const roleCheckboxes = [...additionalRoles.querySelectorAll('input[type="checkbox"]')];
   const form = document.getElementById("player-form");
   const editor = document.getElementById("editor");
   const portfolio = document.getElementById("portfolio");
@@ -80,7 +82,23 @@
   function readForm() {
     return { ...Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value])), avatar: draftAvatar,
       accentColor: accentColor.value, theme: theme.value, teams: draftTeams.map((team) => ({ ...team })),
-      achievementCards: draftAchievementCards.map((card) => ({ ...card })) };
+      achievementCards: draftAchievementCards.map((card) => ({ ...card })),
+      additionalRoles: roleCheckboxes.filter((input) => input.checked).map((input) => input.value) };
+  }
+
+  function isDota(game) {
+    return /^(?:dota|дота)\s*2$/i.test(game.trim());
+  }
+
+  function updateAdditionalRoles() {
+    const game = discipline.value.trim();
+    const useList = !game || isDota(game);
+    additionalRoles.hidden = !useList;
+    const primary = document.getElementById("role").value;
+    for (const input of roleCheckboxes) {
+      input.disabled = useList && input.value === primary;
+      if (input.disabled) input.checked = false;
+    }
   }
 
   function updateRoleField(value = document.getElementById("role").value) {
@@ -111,9 +129,13 @@
     } else control.placeholder = "Ваша игровая роль";
     control.value = value;
     previous.replaceWith(control);
+    updateAdditionalRoles();
   }
 
   discipline.addEventListener("input", () => updateRoleField());
+  form.addEventListener("change", (event) => {
+    if (event.target.id === "role") updateAdditionalRoles();
+  });
 
   function dateValue(value) {
     if (typeof value !== "string") return null;
@@ -403,7 +425,8 @@
     return { id: crypto.randomUUID(), ...Object.fromEntries(fields.map((field) => [field, values[field] ?? ""])),
       avatar: values.avatar ?? "", accentColor: values.accentColor ?? defaultAccent, theme: values.theme ?? "dark",
       teams: (values.teams ?? []).map((team) => ({ ...team })),
-      achievementCards: (values.achievementCards ?? []).map((card) => ({ ...card })) };
+      achievementCards: (values.achievementCards ?? []).map((card) => ({ ...card })),
+      additionalRoles: [...(values.additionalRoles ?? [])] };
   }
 
   function validAvatar(value) {
@@ -416,6 +439,7 @@
       (player.avatar === undefined || validAvatar(player.avatar)) &&
       (player.accentColor === undefined || (typeof player.accentColor === "string" && /^#[a-f\d]{6}$/i.test(player.accentColor))) &&
       (player.theme === undefined || player.theme === "dark" || player.theme === "light") &&
+      (player.additionalRoles === undefined || (Array.isArray(player.additionalRoles) && player.additionalRoles.every((role) => dotaRoles.includes(role)) && new Set(player.additionalRoles).size === player.additionalRoles.length)) &&
       (player.teams === undefined || validTeams(player.teams)) &&
       (player.achievementCards === undefined || validAchievementCards(player.achievementCards));
   }
@@ -520,6 +544,11 @@
     renderTeams(player.teams ?? []);
     displayAvatar("view-avatar", "view-avatar-placeholder", player.avatar ?? "");
     document.getElementById("portfolio-title").textContent = player.nickname;
+    const roleCard = document.getElementById("view-additional-roles-card");
+    const extra = document.getElementById("view-additional-roles");
+    roleCard.hidden = !isDota(player.discipline);
+    extra.textContent = (player.additionalRoles ?? []).join(", ") || "Не указаны";
+    extra.classList.toggle("empty", !(player.additionalRoles ?? []).length);
     for (const field of fields.slice(1)) {
       const target = document.getElementById(`view-${field}`);
       const empty = !player[field].trim();
@@ -578,6 +607,7 @@
     draftAvatar = player?.avatar ?? "";
     refreshAvatar();
     discipline.value = player?.discipline ?? "";
+    for (const input of roleCheckboxes) input.checked = (player?.additionalRoles ?? []).includes(input.value);
     updateRoleField(player?.role ?? "");
     for (const field of fields) document.getElementById(field).value = player ? player[field] : "";
     baseline = JSON.stringify(readForm());
