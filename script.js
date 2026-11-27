@@ -6,6 +6,9 @@
   const fields = ["nickname", "discipline", "role", "statistics", "achievements", "contacts"];
   const dotaRoles = ["Кэрри", "Мидер", "Оффлейнер", "Саппорт", "Полная поддержка"];
   const discipline = document.getElementById("discipline");
+  const dotabuff = document.getElementById("dotabuff");
+  const dotabuffField = document.getElementById("dotabuff-field");
+  const dotabuffError = document.getElementById("dotabuff-error");
   const additionalRoles = document.getElementById("additional-roles");
   const roleCheckboxes = [...additionalRoles.querySelectorAll('input[type="checkbox"]')];
   const form = document.getElementById("player-form");
@@ -83,7 +86,17 @@
     return { ...Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value])), avatar: draftAvatar,
       accentColor: accentColor.value, theme: theme.value, teams: draftTeams.map((team) => ({ ...team })),
       achievementCards: draftAchievementCards.map((card) => ({ ...card })),
-      additionalRoles: roleCheckboxes.filter((input) => input.checked).map((input) => input.value) };
+      additionalRoles: roleCheckboxes.filter((input) => input.checked).map((input) => input.value), dotabuff: dotabuff.value.trim() };
+  }
+
+  function validDotabuff(value) {
+    if (!value) return true;
+    try {
+      const url = new URL(value);
+      return url.protocol === "https:" && (url.hostname === "dotabuff.com" || url.hostname === "www.dotabuff.com" || url.hostname === "ru.dotabuff.com") && !url.username && !url.password && !url.port;
+    } catch {
+      return false;
+    }
   }
 
   function isDota(game) {
@@ -94,6 +107,7 @@
     const game = discipline.value.trim();
     const useList = !game || isDota(game);
     additionalRoles.hidden = !useList;
+    dotabuffField.hidden = !useList;
     const primary = document.getElementById("role").value;
     for (const input of roleCheckboxes) {
       input.disabled = useList && input.value === primary;
@@ -426,7 +440,7 @@
       avatar: values.avatar ?? "", accentColor: values.accentColor ?? defaultAccent, theme: values.theme ?? "dark",
       teams: (values.teams ?? []).map((team) => ({ ...team })),
       achievementCards: (values.achievementCards ?? []).map((card) => ({ ...card })),
-      additionalRoles: [...(values.additionalRoles ?? [])] };
+      additionalRoles: [...(values.additionalRoles ?? [])], dotabuff: values.dotabuff ?? "" };
   }
 
   function validAvatar(value) {
@@ -439,6 +453,7 @@
       (player.avatar === undefined || validAvatar(player.avatar)) &&
       (player.accentColor === undefined || (typeof player.accentColor === "string" && /^#[a-f\d]{6}$/i.test(player.accentColor))) &&
       (player.theme === undefined || player.theme === "dark" || player.theme === "light") &&
+      (player.dotabuff === undefined || (typeof player.dotabuff === "string" && validDotabuff(player.dotabuff))) &&
       (player.additionalRoles === undefined || (Array.isArray(player.additionalRoles) && player.additionalRoles.every((role) => dotaRoles.includes(role)) && new Set(player.additionalRoles).size === player.additionalRoles.length)) &&
       (player.teams === undefined || validTeams(player.teams)) &&
       (player.achievementCards === undefined || validAchievementCards(player.achievementCards));
@@ -549,6 +564,14 @@
     roleCard.hidden = !isDota(player.discipline);
     extra.textContent = (player.additionalRoles ?? []).join(", ") || "Не указаны";
     extra.classList.toggle("empty", !(player.additionalRoles ?? []).length);
+    document.getElementById("view-dotabuff-card").hidden = !isDota(player.discipline);
+    const link = document.getElementById("view-dotabuff");
+    const url = player.dotabuff ?? "";
+    link.hidden = !url;
+    link.textContent = url;
+    if (url) link.href = url;
+    else link.removeAttribute("href");
+    document.getElementById("view-dotabuff-empty").hidden = Boolean(url);
     for (const field of fields.slice(1)) {
       const target = document.getElementById(`view-${field}`);
       const empty = !player[field].trim();
@@ -607,6 +630,9 @@
     draftAvatar = player?.avatar ?? "";
     refreshAvatar();
     discipline.value = player?.discipline ?? "";
+    dotabuff.value = player?.dotabuff ?? "";
+    dotabuff.removeAttribute("aria-invalid");
+    dotabuffError.hidden = true;
     for (const input of roleCheckboxes) input.checked = (player?.additionalRoles ?? []).includes(input.value);
     updateRoleField(player?.role ?? "");
     for (const field of fields) document.getElementById(field).value = player ? player[field] : "";
@@ -629,6 +655,21 @@
     nickname.focus();
     return false;
   }
+
+  function validateForm() {
+    if (!validateNickname()) return false;
+    if (validDotabuff(dotabuff.value.trim())) return true;
+    dotabuffField.hidden = false;
+    dotabuff.setAttribute("aria-invalid", "true");
+    dotabuffError.hidden = false;
+    dotabuff.focus();
+    return false;
+  }
+
+  dotabuff.addEventListener("input", () => {
+    dotabuff.removeAttribute("aria-invalid");
+    dotabuffError.hidden = true;
+  });
 
   function preparePrint() {
     const player = state.portfolios.find((item) => item.id === state.activeId);
@@ -673,7 +714,7 @@
   document.getElementById("save-and-print").addEventListener("click", () => {
     exportDialog.close();
     message("");
-    if (!validateNickname()) return;
+    if (!validateForm()) return;
     if (!persist(withDraft())) return;
     loadActive(false, true);
     void printSaved();
@@ -693,7 +734,7 @@
   }
 
   function continueAction(action, saveDraft) {
-    if (saveDraft && !validateNickname()) return;
+    if (saveDraft && !validateForm()) return;
     if (action.type === "new") {
       if (saveDraft) {
         if (!persist(withDraft())) return;
@@ -733,7 +774,7 @@
     event.preventDefault();
     if (waitForAvatar()) return;
     message("");
-    if (!validateNickname()) return;
+    if (!validateForm()) return;
     if (!persist(withDraft())) return;
     loadActive(false, true);
     message("Портфолио сохранено в этом браузере.");

@@ -58,6 +58,7 @@
         <div class="form-grid">
           <label><span>Никнейм <span class="hint">(обязательно)</span></span><input id="nickname" name="nickname" autocomplete="nickname" required aria-describedby="nickname-error"><span id="nickname-error" class="error" hidden>Введите никнейм.</span></label>
           <label>Игровая дисциплина<input id="discipline" name="discipline" placeholder="Например, Dota 2"></label>
+          <label id="dotabuff-field" class="full-width">Ссылка на Dotabuff <span class="hint">(по желанию)</span><input id="dotabuff" type="url" placeholder="https://www.dotabuff.com/players/..." aria-describedby="dotabuff-error"><span id="dotabuff-error" class="error" role="alert" hidden>Введите ссылку HTTPS на сайт dotabuff.com.</span></label>
           <label class="full-width">Роль<select id="role" name="role">
             <option value="">Не указана</option>
             <option value="Кэрри">Кэрри — позиция 1</option>
@@ -103,6 +104,7 @@
         <div><dt>Игровая дисциплина</dt><dd id="view-discipline"></dd></div>
         <div><dt>Роль</dt><dd id="view-role"></dd></div>
         <div id="view-additional-roles-card"><dt>Дополнительные роли</dt><dd id="view-additional-roles"></dd></div>
+        <div id="view-dotabuff-card"><dt>Dotabuff</dt><dd><a id="view-dotabuff" target="_blank" rel="noopener noreferrer"></a><span id="view-dotabuff-empty" class="empty">Не указано</span></dd></div>
         <div><dt>Статистика</dt><dd id="view-statistics"></dd></div>
         <div><dt>Достижения — свободный текст</dt><dd id="view-achievements"></dd></div>
         <div class="full-width"><dt>Контакты</dt><dd id="view-contacts"></dd></div>
