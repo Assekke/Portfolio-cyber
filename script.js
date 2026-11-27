@@ -20,6 +20,9 @@
   const nicknameError = document.getElementById("nickname-error");
   const status = document.getElementById("status");
   const select = document.getElementById("portfolio-select");
+  const roleFilter = document.getElementById("role-filter");
+  const roleResults = document.getElementById("role-search-results");
+  const roleSearchEmpty = document.getElementById("role-search-empty");
   const unsavedDialog = document.getElementById("unsaved-dialog");
   const createDialog = document.getElementById("create-dialog");
   const createForm = document.getElementById("create-form");
@@ -604,7 +607,32 @@
       select.append(option);
     }
     select.value = state.activeId ?? "";
+    renderRoleResults();
   }
+
+  function renderRoleResults() {
+    const role = roleFilter.value;
+    const matches = state.portfolios.filter((player) => !role ||
+      (isDota(player.discipline) && (player.role === role || (player.additionalRoles ?? []).includes(role))));
+    roleResults.replaceChildren();
+    for (const player of matches) {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "secondary";
+      button.textContent = player.nickname;
+      if (player.id === state.activeId) button.setAttribute("aria-current", "true");
+      button.addEventListener("click", () => {
+        if (player.id !== state.activeId) requestAction({ type: "switch", id: player.id });
+      });
+      item.append(button);
+      roleResults.append(item);
+    }
+    roleSearchEmpty.hidden = matches.length > 0;
+    roleSearchEmpty.textContent = role ? "Игроков с этой ролью пока нет." : "Пока нет сохранённых портфолио.";
+  }
+
+  roleFilter.addEventListener("change", renderRoleResults);
 
   function loadActive(edit = false, focus = false) {
     avatarRequest += 1;

@@ -91,6 +91,11 @@ footer { max-width: 960px; margin: 0 auto; padding: 8px 24px 20px; color: var(--
 .portfolio-controls > button { margin-left: auto; }
 #portfolio-select { background: rgb(255 70 70 / 12%); border-color: rgb(225 90 90 / 55%); color: var(--panel-text); }
 #portfolio-select option { background: var(--input-bg); color: var(--text); }
+.role-search { margin: 0 0 20px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+.role-search h2 { margin: 0; font-size: 20px; }
+.role-search label { max-width: 320px; }
+#role-search-results { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 12px 0 0; list-style: none; }
+#role-search-results button { max-width: 100%; overflow-wrap: anywhere; }
 .appearance-controls { min-width: 0; margin: 0 0 20px; padding: 0 0 16px; border: 0; border-bottom: 1px solid var(--line); }
 .appearance-controls legend { padding: 0 0 16px; font-size: 14px; font-weight: 600; }
 .appearance-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -184,7 +189,7 @@ dialog label + label { margin-top: 20px; }
   }
   body { background: #ffffff; font-size: 11pt; }
   main { max-width: none; width: auto; margin: 0; padding: 0; }
-  .site-header, footer, #editor, .portfolio-controls, .export-controls, #status, dialog, noscript, #portfolio button, .portfolio-summary button, .portfolio-brand { display: none !important; }
+  .site-header, footer, #editor, .portfolio-controls, .role-search, .export-controls, #status, dialog, noscript, #portfolio button, .portfolio-summary button, .portfolio-brand { display: none !important; }
   :root[data-print-ready="true"] #portfolio-summary { display: grid !important; }
   :root[data-print-ready="true"] #portfolio { display: block !important; }
   :root:not([data-print-ready="true"]) #portfolio-summary { display: none !important; }
