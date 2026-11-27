@@ -89,7 +89,9 @@
     return { ...Object.fromEntries(fields.map((field) => [field, document.getElementById(field).value])), avatar: draftAvatar,
       accentColor: accentColor.value, theme: theme.value, teams: draftTeams.map((team) => ({ ...team })),
       achievementCards: draftAchievementCards.map((card) => ({ ...card })),
-      additionalRoles: roleCheckboxes.filter((input) => input.checked).map((input) => input.value), dotabuff: dotabuff.value.trim() };
+      additionalRoles: roleCheckboxes.filter((input) => input.checked).map((input) => input.value),
+      dotabuff: dotabuffField.hidden && !validDotabuff(dotabuff.value.trim())
+        ? (state.portfolios.find((player) => player.id === state.activeId)?.dotabuff ?? "") : dotabuff.value.trim() };
   }
 
   function validDotabuff(value) {
@@ -686,7 +688,7 @@
 
   function validateForm() {
     if (!validateNickname()) return false;
-    if (validDotabuff(dotabuff.value.trim())) return true;
+    if (dotabuffField.hidden || validDotabuff(dotabuff.value.trim())) return true;
     dotabuffField.hidden = false;
     dotabuff.setAttribute("aria-invalid", "true");
     dotabuffError.hidden = false;
