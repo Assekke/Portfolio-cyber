@@ -5,6 +5,7 @@
   const legacyKey = "esports-player-portfolio-v1";
   const fields = ["nickname", "discipline", "role", "statistics", "achievements", "contacts"];
   const dotaRoles = ["Кэрри", "Мидер", "Оффлейнер", "Саппорт", "Полная поддержка"];
+  const roleColors = ["#A92B39", "#E99A45", "#A77AE3", "#55A9D8", "#69B985"];
   const discipline = document.getElementById("discipline");
   const dotabuff = document.getElementById("dotabuff");
   const dotabuffField = document.getElementById("dotabuff-field");
@@ -605,6 +606,11 @@
       button.type = "button";
       button.className = "secondary";
       button.textContent = player.nickname;
+      const color = roleColors[dotaRoles.indexOf(role || (isDota(player.discipline) ? player.role : ""))];
+      if (color) {
+        button.style.setProperty("--role-color", color);
+        button.style.setProperty("--role-background", `${color}66`);
+      }
       if (player.id === state.activeId) button.setAttribute("aria-current", "true");
       button.addEventListener("click", () => {
         if (player.id !== state.activeId) requestAction({ type: "switch", id: player.id });
