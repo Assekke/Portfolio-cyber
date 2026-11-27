@@ -86,16 +86,19 @@ dt { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
 dd { margin: 0; font-size: 18px; white-space: pre-wrap; overflow-wrap: anywhere; }
 dd.empty { color: var(--muted); font-size: 16px; }
 footer { max-width: 960px; margin: 0 auto; padding: 8px 24px 20px; color: var(--muted); font-size: 12px; }
+.role-search { margin: 0 0 20px; padding: 16px; border: 1px solid rgb(120 190 90 / 55%); border-radius: 12px; background: rgb(145 220 100 / 12%); }
 .portfolio-controls { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 16px; }
-.portfolio-controls label { flex: 0 1 auto; width: calc(15ch + 52px); max-width: 100%; }
+.portfolio-controls label { flex: 0 1 240px; }
 .portfolio-controls > button { margin-left: auto; }
 #portfolio-select { background: rgb(255 70 70 / 12%); border-color: rgb(225 90 90 / 55%); color: var(--panel-text); }
-#portfolio-select option { background: var(--input-bg); color: var(--text); }
-.role-search { margin: 0 0 20px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+#portfolio-select option, #role-filter option { background: var(--input-bg); color: var(--text); }
+#role-filter { background: var(--accent); color: var(--on-accent); font-weight: 700; cursor: pointer; }
 .role-search h2 { margin: 0; font-size: 20px; }
-.role-search label { max-width: 320px; }
 #role-search-results { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 12px 0 0; list-style: none; }
+#role-search-results button { background: rgb(255 70 70 / 12%); border-color: rgb(225 90 90 / 55%); color: var(--panel-text); }
 #role-search-results button { max-width: 100%; overflow-wrap: anywhere; }
+#role-search-results button:hover { background: rgb(255 70 70 / 22%); }
+#role-search-results button[aria-current="true"] { border: 2px solid var(--accent-ink); }
 .appearance-controls { min-width: 0; margin: 0 0 20px; padding: 0 0 16px; border: 0; border-bottom: 1px solid var(--line); }
 .appearance-controls legend { padding: 0 0 16px; font-size: 14px; font-weight: 600; }
 .appearance-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -137,6 +140,7 @@ dialog label + label { margin-top: 20px; }
   .form-grid, .portfolio-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
   .actions { align-items: stretch; flex-direction: column; gap: 12px; }
   .portfolio-controls { align-items: stretch; flex-direction: column; }
+  .portfolio-controls label { flex: auto; }
   .portfolio-controls > button { margin-left: 0; }
   .avatar-controls { flex-direction: column; }
   .appearance-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
@@ -152,7 +156,6 @@ dialog label + label { margin-top: 20px; }
 }
 @media screen {
   .portfolio-summary { margin-bottom: 8px; }
-  .portfolio-controls { margin-bottom: 10px; }
   #portfolio .portfolio-grid { gap: 8px; }
   #portfolio .portfolio-grid > div { padding: 8px 12px; }
   #portfolio dt { margin-bottom: 4px; }

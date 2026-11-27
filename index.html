@@ -24,13 +24,8 @@
       <img class="portfolio-brand" src="logo.png" alt="ASDS Games" width="1774" height="887">
       <button id="edit-button" type="button">Редактировать</button>
     </section>
-    <section class="portfolio-controls" aria-label="Выбор портфолио">
+    <section class="portfolio-controls" aria-label="Выбор портфолио и роли">
       <label for="portfolio-select">Игровое портфолио<select id="portfolio-select"><option value="">Пока нет сохранённых портфолио</option></select></label>
-      <button id="new-button" type="button">Создать портфолио</button>
-    </section>
-    <section class="role-search" aria-labelledby="role-search-title">
-      <h2 id="role-search-title">Поиск игроков по роли</h2>
-      <p class="hint">Показаны портфолио, сохранённые в этом браузере.</p>
       <label for="role-filter">Позиция Dota 2<select id="role-filter">
         <option value="">Все роли</option>
         <option value="Кэрри">Кэрри — позиция 1</option>
@@ -39,6 +34,11 @@
         <option value="Саппорт">Саппорт — позиция 4</option>
         <option value="Полная поддержка">Полная поддержка — позиция 5</option>
       </select></label>
+      <button id="new-button" type="button">Создать портфолио</button>
+    </section>
+    <section class="role-search" aria-labelledby="role-search-title">
+      <h2 id="role-search-title">Игроки по роли</h2>
+      <p class="hint">Показаны портфолио, сохранённые в этом браузере.</p>
       <p id="role-search-empty" class="hint" role="status" hidden></p>
       <ul id="role-search-results" aria-label="Найденные портфолио"></ul>
     </section>

@@ -592,24 +592,6 @@
     if (focus) document.getElementById("portfolio-title").focus();
   }
 
-  function updateSelector() {
-    select.replaceChildren();
-    if (!state.portfolios.length) {
-      const option = document.createElement("option");
-      option.value = "";
-      option.textContent = "Пока нет сохранённых портфолио";
-      select.append(option);
-    }
-    for (const player of state.portfolios) {
-      const option = document.createElement("option");
-      option.value = player.id;
-      option.textContent = player.nickname;
-      select.append(option);
-    }
-    select.value = state.activeId ?? "";
-    renderRoleResults();
-  }
-
   function renderRoleResults() {
     const role = roleFilter.value;
     const matches = state.portfolios.filter((player) => !role ||
@@ -630,6 +612,24 @@
     }
     roleSearchEmpty.hidden = matches.length > 0;
     roleSearchEmpty.textContent = role ? "Игроков с этой ролью пока нет." : "Пока нет сохранённых портфолио.";
+  }
+
+  function updateSelector() {
+    select.replaceChildren();
+    if (!state.portfolios.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "Пока нет сохранённых портфолио";
+      select.append(option);
+    }
+    for (const player of state.portfolios) {
+      const option = document.createElement("option");
+      option.value = player.id;
+      option.textContent = player.nickname;
+      select.append(option);
+    }
+    select.value = state.activeId ?? "";
+    renderRoleResults();
   }
 
   roleFilter.addEventListener("change", renderRoleResults);
@@ -855,7 +855,6 @@
     select.value = state.activeId ?? "";
     if (id !== state.activeId) requestAction({ type: "switch", id });
   });
-
   document.getElementById("new-button").addEventListener("click", () => requestAction({ type: "new" }));
   document.getElementById("cancel-transition").addEventListener("click", () => {
     pendingAction = null;
